@@ -6,12 +6,15 @@ CREATE TABLE dbo.users
 )
 
 -- Loading dummy users data
-INSERT INTO dbo.users (username) VALUES ('User 1');
-INSERT INTO dbo.users (username) VALUES ('User 2');
-INSERT INTO dbo.users (username) VALUES ('User 3');
-INSERT INTO dbo.users (username) VALUES ('User 4');
-INSERT INTO dbo.users (username) VALUES ('User 5');
+BEGIN TRAN
 
+  INSERT INTO dbo.users (username) VALUES ('User 1');
+  INSERT INTO dbo.users (username) VALUES ('User 2');
+  INSERT INTO dbo.users (username) VALUES ('User 3');
+  INSERT INTO dbo.users (username) VALUES ('User 4');
+  INSERT INTO dbo.users (username) VALUES ('User 5');
+
+COMMIT;
 -- Select a winner
 WITH cte_random_winner AS (
     SELECT TOP 1 u.username
