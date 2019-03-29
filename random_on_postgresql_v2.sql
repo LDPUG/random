@@ -1,4 +1,5 @@
--- Create table 
+/*
+-- Create table
 CREATE TABLE public.pg_day
 (
     id bigserial
@@ -16,29 +17,30 @@ INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (2, '
 INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (2, 'User 2', 'User 2', 1, 1);
 INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (2, 'User 3', 'User 3', 1, NULL);
 
-
+*/
 -- Select a winner
 WITH 
 event AS
 (
-    SELECT max(event_id) AS event_id 
-    FROM public.pg_day
+    SELECT max(d.event_id) AS event_id 
+    FROM public.pg_day d
 ),
 chans AS
 (
     SELECT 
-        max(uname), email,
+        max(d.uname), 
+        d.email,
         SUM
         (    
             CASE 
-                WHEN present IS NULL THEN -1
-                WHEN present IS NOT NULL AND winner IS NOT NULL THEN 0
-                WHEN present IS NOT NULL AND winner IS NULL THEN 1
+                WHEN d.present IS NULL THEN -1
+                WHEN d.present IS NOT NULL AND d.winner IS NOT NULL THEN 0
+                WHEN d.present IS NOT NULL AND d.winner IS NULL THEN 1
                 ELSE 0
             END
         ) coeff 
-    FROM public.pg_day
-    GROUP BY email    
+    FROM public.pg_day d
+    GROUP BY d.email     
 ),
 winner AS 
 (
@@ -46,7 +48,15 @@ winner AS
     FROM public.pg_day d
         INNER JOIN event e ON e.event_id = d.event_id
         INNER JOIN chans c ON c.email = d.email AND c.coeff > 0
-        CROSS JOIN LATERAL generate_series(1, coeff, 1) 
+        CROSS JOIN LATERAL generate_series(1, c.coeff, 1)
+    WHERE NOT EXISTS
+        (
+            SELECT 1
+            FROM public.pg_day dd
+            WHERE dd.email = d.email
+                AND dd.event_id = e.event_id
+                AND dd.winner IS NOT NULL
+        )    
     ORDER BY random()    
     LIMIT 1
 ),
@@ -59,5 +69,5 @@ winner_upd AS
         AND w.email = d.email
     RETURNING d.uname, d.email    
 )
-SELECT uname
-FROM winner_upd
+SELECT w.uname
+FROM winner_upd w
