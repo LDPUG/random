@@ -16,7 +16,7 @@ INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (2, '
 INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (2, 'User 2', 'User 2', 1, 1);
 INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (2, 'User 3', 'User 3', 1, NULL);
 
-*/
+
 -- Select a winner
 WITH 
 event AS
@@ -38,8 +38,7 @@ chans AS
             END
         ) coeff 
     FROM public.pg_day
-    GROUP BY email
-    ORDER BY 3 DESC 
+    GROUP BY email    
 ),
 winner AS 
 (
@@ -60,5 +59,5 @@ winner_upd AS
         AND w.email = d.email
     RETURNING d.uname, d.email    
 )
-SELECT *
+SELECT uname
 FROM winner_upd
