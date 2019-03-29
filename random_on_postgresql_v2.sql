@@ -1,4 +1,4 @@
--- Create table
+-- Create table 
 CREATE TABLE public.pg_day
 (
     id bigserial
