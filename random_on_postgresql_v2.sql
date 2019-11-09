@@ -16,8 +16,8 @@ INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (1, '
 INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (2, 'User 1', 'User 1', 1, NULL);
 INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (2, 'User 2', 'User 2', 1, 1);
 INSERT INTO public.pg_day (event_id, uname, email, present, winner) VALUES (2, 'User 3', 'User 3', 1, NULL);
-
 */
+
 -- Select a winner
 WITH 
 event AS
@@ -41,19 +41,20 @@ chans AS
         ) coeff 
     FROM public.pg_day d
     GROUP BY d.email     
+  ORDER BY 3 DESC 
 ),
 winner AS 
 (
     SELECT d.event_id, d.email
     FROM public.pg_day d
         INNER JOIN event e ON e.event_id = d.event_id
-        INNER JOIN chans c ON c.email = d.email AND c.coeff > 0
+        INNER JOIN chans c ON upper(c.email) = upper(d.email) AND c.coeff > 0
         CROSS JOIN LATERAL generate_series(1, c.coeff, 1)
     WHERE NOT EXISTS
         (
             SELECT 1
             FROM public.pg_day dd
-            WHERE dd.email = d.email
+            WHERE upper(dd.email) = upper(d.email)
                 AND dd.event_id = e.event_id
                 AND dd.winner IS NOT NULL
         )    
@@ -66,7 +67,7 @@ winner_upd AS
     SET winner = 1
     FROM winner w 
     WHERE w.event_id = d.event_id
-        AND w.email = d.email
+        AND upper(w.email) = upper(d.email)
     RETURNING d.uname, d.email    
 )
 SELECT w.uname
